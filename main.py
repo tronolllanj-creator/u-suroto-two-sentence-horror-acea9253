@@ -1,44 +1,34 @@
-"""Entrypoint module for the grader."""
-# Entry validated: output is 1-400 chars, exactly two sentences, deterministic.
-
 import os
 import sys
 
-STORY = "The smoke detector on the ceiling only gives its sharp, two-tone chirp when I am fast asleep and dreaming of open windows. My wife insists she stays awake all night just to watch the little red LED blink against the dark."
+"""Write the two-sentence story to $MAKEFUN_OUTPUT_DIR/entry.txt."""
+# Entry validated: output is 1-400 chars, exactly two sentences, deterministic.
 
+STORY = ("Grandmother's recipe card for blackberry jam lists my full birth name "
+         "under ingredients with a measurement of one cup. "
+         "The jar in her pantry bears my name and a date three years before I was born.")
 
-def main():
-    base_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "out")
-    os.makedirs(base_dir, exist_ok=True)
-    file_path = os.path.join(base_dir, "entry.txt")
+def validate(content: str) -> None:
+    if not (1 <= len(content) <= 400):
+        raise ValueError("length out of range")
+    if not content.strip():
+        raise ValueError("empty after strip")
+    if content.count('\n') != 1:
+        raise ValueError("newline count != 1")
+    if not content.endswith('\n'):
+        raise ValueError("does not end with newline")
+    if sum(content.count(c) for c in '.!?') != 2:
+        raise ValueError("sentence terminator count != 2")
 
-    content = STORY + chr(10)
-    stripped_story = STORY.strip()
-
-    if not stripped_story:
-        raise ValueError("Story is only whitespace")
-
-    if len(content) > 400 or len(content) < 1:
-        raise ValueError("Invalid length")
-
-    sentence_count = 0
-    length = len(stripped_story)
-    for i in range(length):
-        char = stripped_story[i]
-        if char in ".!?":
-            if i == length - 1 or stripped_story[i + 1] == " ":
-                sentence_count += 1
-
-    if sentence_count != 2:
-        raise ValueError("Invalid sentence count")
-
-    with open(file_path, "w", encoding="utf-8") as f:
+def main() -> None:
+    out_dir = os.environ.get('MAKEFUN_OUTPUT_DIR', '/output')
+    os.makedirs(out_dir, exist_ok=True)
+    out_path = os.path.join(out_dir, 'entry.txt')
+    content = STORY + '\n'
+    validate(content)
+    with open(out_path, 'w', encoding='utf-8') as f:
         f.write(content)
+    print(out_path, len(content))
 
-    print(file_path)
-    print(len(content))
-    print(sentence_count)
-
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
